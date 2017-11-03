@@ -7,18 +7,29 @@
 	<name>social</name>
 	<properties>
 		<log4j-core-version>2.5</log4j-core-version>
+		<vertx.version>3.4.2</vertx.version>
 
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda</artifactId>
+			<version>0.5.5</version>
+		</dependency>
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda-utils</artifactId>
+			<version>0.4</version>
+		</dependency>
+		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -28,13 +39,13 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-reactive-streams</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.vertx/vertx-rx-java -->
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-rx-java</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -44,18 +55,18 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-hazelcast</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-auth-common</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-oauth2 -->
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-auth-oauth2</artifactId>
-			<version>3.4.2</version>
+			<version>${vertx.version}</version>
 		</dependency>
 		<!--<dependency> <groupId>com.outcome-hub</groupId> <artifactId>qwanda</artifactId> 
 			<version>0.4.9.5</version> </dependency> -->
@@ -69,13 +80,85 @@
 		<dependency>
 			<groupId>org.bitsofinfo</groupId>
 			<artifactId>hazelcast-docker-swarm-discovery-spi</artifactId>
-			<version>1.0-RC2</version>
+			<version>1.0-RC3</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.scribejava</groupId>
-			<artifactId>scribejava-apis</artifactId>
-			<version>4.1.2</version>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-api</artifactId>
+			<version>7.0.0.Final</version>
 		</dependency>
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-decisiontables</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.8.9</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.8.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javamoney</groupId>
+			<artifactId>moneta</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-core</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-compiler</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.drools/drools-compiler -->
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-compiler</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/javax.xml.stream/stax-api -->
+		<dependency>
+			<groupId>javax.xml.stream</groupId>
+			<artifactId>stax-api</artifactId>
+			<version>1.0-2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-flow</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.11</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-flow-builder</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-bpmn2</artifactId>
+			<version>7.0.0.Final</version>
+		</dependency>
+
 	</dependencies>
 	<repositories>
 		<repository>
@@ -140,7 +223,7 @@
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<Main-Class>io.vertx.core.Starter</Main-Class>
-										<Main-Verticle>life.genny.social.ServiceVerticle</Main-Verticle>
+										<Main-Verticle>life.genny.rulesservice.ServiceVerticle</Main-Verticle>
 
 									</manifestEntries>
 								</transformer>
@@ -163,4 +246,93 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<!-- The JXR Plugin generates a cross-reference of the project's sources. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.5</version>
+			</plugin>
+			<plugin>
+				<!-- The Javadoc Plugin generates javadocs using the Javadoc tool. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- The Surefire Report Plugin generates reports for unit and integration 
+					tests. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>2.19.1</version>
+			</plugin>
+			<plugin>
+				<!-- The Checkstyle Plugin generates a report regarding the code style 
+					used by the developers. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<configLocation>google_checks.xml</configLocation>
+				</configuration>
+
+			</plugin>
+			<plugin>
+				<!-- The PMD plugin generates PMD and CPD reports using the PMD code 
+					analysis tool. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.6</version>
+				<configuration>
+					<skipEmptyReport>false</skipEmptyReport>
+					<linkXref>true</linkXref>
+					<minimumTokens>50</minimumTokens>
+					<rulesets>
+						<ruleset>rulesets/java/android.xml</ruleset>
+						<ruleset>rulesets/java/basic.xml</ruleset>
+						<ruleset>rulesets/java/braces.xml</ruleset>
+						<ruleset>rulesets/java/clone.xml</ruleset>
+						<ruleset>rulesets/java/codesize.xml</ruleset>
+						<ruleset>rulesets/java/comments.xml</ruleset>
+						<!-- <ruleset>rulesets/java/controversial.xml</ruleset> -->
+						<ruleset>rulesets/java/coupling.xml</ruleset>
+						<ruleset>rulesets/java/design.xml</ruleset>
+						<ruleset>rulesets/java/empty.xml</ruleset>
+						<ruleset>rulesets/java/finalizers.xml</ruleset>
+						<ruleset>rulesets/java/imports.xml</ruleset>
+						<ruleset>rulesets/java/j2ee.xml</ruleset>
+						<ruleset>rulesets/java/javabeans.xml</ruleset>
+						<ruleset>rulesets/java/junit.xml</ruleset>
+						<ruleset>rulesets/java/logging-jakarta-commons.xml</ruleset>
+						<ruleset>rulesets/java/logging-java.xml</ruleset>
+						<ruleset>rulesets/java/migrating.xml</ruleset>
+						<ruleset>rulesets/java/migrating_to_13.xml</ruleset>
+						<ruleset>rulesets/java/migrating_to_14.xml</ruleset>
+						<ruleset>rulesets/java/migrating_to_15.xml</ruleset>
+						<ruleset>rulesets/java/migrating_to_junit4.xml</ruleset>
+						<ruleset>rulesets/java/naming.xml</ruleset>
+						<ruleset>rulesets/java/optimizations.xml</ruleset>
+						<ruleset>rulesets/java/strictexception.xml</ruleset>
+						<ruleset>rulesets/java/strings.xml</ruleset>
+						<ruleset>rulesets/java/sunsecure.xml</ruleset>
+						<ruleset>rulesets/java/typeresolution.xml</ruleset>
+						<ruleset>rulesets/java/unnecessary.xml</ruleset>
+						<ruleset>rulesets/java/unusedcode.xml</ruleset>
+					</rulesets>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- FindBugs Plugin looks for bugs in Java programs. It is based on 
+					the concept of bug patterns. -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.0</version>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

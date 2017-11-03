@@ -1,6 +1,6 @@
 {
   "realm": "genny",
-"auth-server-url": "http://bouncer.outcome-hub.com/auth",
+"auth-server-url": "http://localhost:8180/auth",
   "ssl-required": "none",
   "resource": "curl",
   "credentials": {
