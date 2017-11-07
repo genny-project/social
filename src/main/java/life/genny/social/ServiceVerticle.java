@@ -35,7 +35,6 @@ import com.hazelcast.instance.HazelcastInstanceFactory;
 import com.hazelcast.instance.Node;
 import com.hazelcast.instance.NodeContext;
 
-import io.vertx.core.Future;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -62,7 +61,11 @@ import io.vertx.rxjava.ext.web.handler.StaticHandler;
 import io.vertx.rxjava.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.rxjava.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
+import life.genny.routes.Routers;
+import life.genny.security.SecureResources;
 import rx.Observable;
+import io.vertx.rxjava.core.Future;
+import life.genny.cluster.Cluster;
 
 public class ServiceVerticle extends AbstractVerticle {
 
@@ -98,16 +101,17 @@ public class ServiceVerticle extends AbstractVerticle {
 
 	@Override
 	public void start() {
-		setupCluster();
-
-	}
-
-	public void setupCluster() {
-		Future<Void> startFuture = Future.future();
-		createCluster().compose(v -> {
+		System.out.println("Setting up routes");
+		final Future<Void> startFuture = Future.future();
+		Cluster.joinCluster(vertx).compose(res -> {
 			eventListeners();
 			eventsInOutFromCluster();
 
+			final Future<Void> fut = Future.future();
+			SecureResources.setKeycloakJsonMap(vertx).compose(p -> {
+				Routers.routers(vertx);
+				fut.complete();
+			}, fut);
 			startFuture.complete();
 		}, startFuture);
 	}
@@ -410,8 +414,7 @@ public class ServiceVerticle extends AbstractVerticle {
 				final String socialCallbackUrl = System.getenv("FACEBOOK_CALLBACK_URL");
 				final String secretState = "secret" + new Random().nextInt(999_999);
 				final OAuth20Service service = new ServiceBuilder(clientId).apiSecret(clientSecret).state(secretState)
-						.callback(socialCallbackUrl+"/social/oauth_callback/")
-						.build(FacebookApi.instance());
+						.callback(socialCallbackUrl + "/social/oauth_callback/").build(FacebookApi.instance());
 
 				// System.out.println("Trading the Request Token for an Access Token...");
 				OAuth2AccessToken accessToken = null;
