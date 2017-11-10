@@ -71,6 +71,7 @@ public class EBCHandlers {
 			final JsonObject payload = new JsonObject(arg.body().toString());
 			final String token = payload.getString("token");
 			System.out.println("###########    The project realm from system env is : ################    "+System.getenv("PROJECT_REALM"));
+			
 			System.out.println(payload);
 			final QEventMessage eventMsg = gson.fromJson(payload.toString(), QEventMessage.class);
 			processEvent(eventMsg, eventBus,token);
@@ -80,6 +81,10 @@ public class EBCHandlers {
 			final JsonObject payload = new JsonObject(arg.body().toString());
 //			final JsonObject a = Buffer.buffer(payload.toString()).toJsonObject();
 			allRules(payload, eventBus);
+		});
+		EBConsumers.getFromSocial().subscribe(arg -> {
+			System.out.println("i'm here alright! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ");
+			System.out.println(arg.body());
 		});
 		
 	}

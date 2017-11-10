@@ -1,6 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 echo "RUNNING DOCKER-ENTRYPOINT"
 #set -e;
+
+myip=
+while IFS=$': \t' read -a line ;do
+    [ -z "${line%inet}" ] && ip=${line[${#line[1]}>4?1:2]} &&
+        [ "${ip#127.0.0.1}" ] && myip=$ip
+  done< <(LANG=C /sbin/ifconfig eth0)
+
+
+if [ -z "${myip}" ]; then
+   myip=127.0.0.1
+fi
+
+export MYIP=${myip}
 
 KEYCLOAK_JSON_DIR=/realm
 KEYCLOAK_ORIGINAL_JSON_DIR=/opt/realm
