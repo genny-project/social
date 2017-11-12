@@ -8,6 +8,23 @@ import io.vertx.rxjava.core.eventbus.MessageProducer;
 public class EBProducers {
 	
 	private static MessageProducer<JsonObject> toCmds;
+	private static MessageProducer<JsonObject> toData;
+
+	/**
+	 * @return the toData
+	 */
+	public static MessageProducer<JsonObject> getToData() {
+		return toData;
+	}
+
+
+	/**
+	 * @param toData the toData to set
+	 */
+	public static void setToData(MessageProducer<JsonObject> toData) {
+		EBProducers.toData = toData;
+	}
+
 
 	/**
 	 * @return the toCmds
@@ -26,5 +43,6 @@ public class EBProducers {
 	
 	public static void registerAllProducers(EventBus eb){
 		setToCmds(eb.publisher("cmds"));
+		setToData(eb.publisher("data"));
 	}
 }

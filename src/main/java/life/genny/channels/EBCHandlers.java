@@ -1,6 +1,7 @@
 package life.genny.channels;
 
 import java.lang.reflect.Type;
+
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +43,20 @@ import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QEventMessage;
 import life.genny.qwandautils.KeycloakUtils;
 
+import java.util.Random;
+import java.util.Scanner;
+import com.github.scribejava.apis.FacebookApi;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.OAuth2AccessToken;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.oauth.OAuth20Service;
+
+import io.vertx.core.json.JsonObject;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 public class EBCHandlers {
 
 	private static final Logger logger = LoggerFactory.getLogger(EBCHandlers.class);
@@ -66,144 +81,111 @@ public class EBCHandlers {
 	
 	
 	public static void registerHandlers(final EventBus eventBus){
-		EBConsumers.getFromEvents().subscribe(arg -> {
-			logger.info("Received Event! - events");
-			final JsonObject payload = new JsonObject(arg.body().toString());
-			final String token = payload.getString("token");
-			System.out.println("###########    The project realm from system env is : ################    "+System.getenv("PROJECT_REALM"));
-			
-			System.out.println(payload);
-			final QEventMessage eventMsg = gson.fromJson(payload.toString(), QEventMessage.class);
-			processEvent(eventMsg, eventBus,token);
-		});
-		EBConsumers.getFromData().subscribe(arg -> {
-			logger.info("Received Event! - data");
-			final JsonObject payload = new JsonObject(arg.body().toString());
-//			final JsonObject a = Buffer.buffer(payload.toString()).toJsonObject();
-			allRules(payload, eventBus);
-		});
 		EBConsumers.getFromSocial().subscribe(arg -> {
-			System.out.println("i'm here alright! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ");
-			System.out.println(arg.body());
-		});
-		
-	}
-	
-	
-	
-	public static void processEvent(final QEventMessage eventMsg, final EventBus bus, final String token) {
-		Vertx.vertx().executeBlocking(future -> {
-			//kSession = createSession(bus, token);
-			
-			//Getting decoded token in Hash Map from QwandaUtils
-			Map<String,Object> decodedToken = KeycloakUtils.getJsonMap(token);
-			//Getting Set of User Roles from QwandaUtils
-			Set<String> userRoles = KeycloakUtils.getRoleSet(decodedToken.get("realm_access").toString());
-		
-			System.out.println("The Roles value are: " +userRoles.toString());
-//			System.out.println("The Roles in the Roles Set: ");
-//			for ( String s : userRoles) {			
-//				System.out.println(s);
-//			}
-			
-			/* Getting Prj Realm name from KeyCloakUtils - Just cheating the keycloak realm names as 
-			 * we can't add multiple realms in genny keyclaok as it is open-source
-			 */
-		    String projectRealm = KeycloakUtils.getPRJRealmFromDevEnv();	    
-		    if(!projectRealm.isEmpty()) {
-		        	decodedToken.put("realm", projectRealm); 
-		    }else 
-		    {
-			   //Extracting realm name from iss value			
-			   String realm = (decodedToken.get("iss").toString().substring(decodedToken.get("iss").toString().lastIndexOf("/")+1));
-			   //Adding realm name to the decoded token
-			   decodedToken.put("realm", realm);
-		    }
-			System.out.println("######  The realm name is:  #####  "+ decodedToken.get("realm"));
-			//Printing Decoded Token values
-			for (Map.Entry entry : decodedToken.entrySet()) {
-			    System.out.println(entry.getKey() + ", " + entry.getValue());
-			}
-						
+			logger.info("Received Facebook Code! - data");
+			final JsonObject payload = new JsonObject(arg.body().toString());
+			System.out.println("8888888888888888888888888888888888888888888888888888888888880");
+			System.out.println("Facebook Code= "+payload.toString()); 
+			System.out.println("8888888888888888888888888888888888888888888888888888888888880");
 			try {
-				kSession = createSession(bus, token, decodedToken, userRoles);
-				kSession.insert(eventMsg);
-				kSession.fireAllRules();
-
-			} catch (final Throwable t) {
-				t.printStackTrace();
+				getToken(payload);
+			} catch (IOException | InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			future.complete();
-		}, res -> {
-			if (res.succeeded()) {
-				System.out.println("ProcessedEvent");
-			}
+			 JsonObject fbData = new JsonObject();
+			 fbData.put("msg_type", "DATA_MSG");
+			 fbData.put("data_type", "Answer");
+			 fbData.put("items",  "this is a facebook data");
+			EBProducers.getToData().write(fbData);
 		});
-
+		
 	}
-
-	public static KieSession createSession(final EventBus bus, final String token, final Map<String,Object> tokenDecoded, final Set<String> roles ) {
-		kContainer = ks.getKieClasspathContainer();
-		final KieSession kSession = kContainer.newKieSession("ksession-rules");
+	
+	
+    private static final String NETWORK_NAME = "Facebook";
+    private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/v2.8/me";
+    private static final String PROTECTED_RESOURCE_URL3 = "https://graph.facebook.com/v2.8/me?fields=id,name,about,age_range,birthday,email,first_name,gender,last_name,relationship_status,timezone,hometown,favorite_athletes,family,friends";
     
-		kSession.setGlobal("REACT_APP_QWANDA_API_URL", qwandaApiUrl);
-		kSession.setGlobal("REACT_APP_VERTX_URL", vertxUrl);
-		kSession.setGlobal("KEYCLOAKIP", hostIp);
-		final Map<String, String> keyValue = new HashMap<String, String>();
-		keyValue.put("token", token);
-		kSession.insert(keyValue);
-		kSession.insert(tokenDecoded);
-		kSession.insert(roles);
-		kSession.insert(bus);
-		return kSession;
+    
+	public static void main(String...str) throws IOException, InterruptedException, ExecutionException {
+	     JsonObject payload = new JsonObject();
+	     payload.put("msg_type", "CMD_MSG");
+	     payload.put("cmd_type", "SOCIAL_MEDIA_FB_FETCH");
+	     payload.put("code", "facebookCode");
+
+		logger.info("Received Facebook Code! - data");
+		System.out.println("************************************************************");
+		System.out.println("Facebook Code= "+payload.toString()); 
+		System.out.println("************************************************************");
+		getToken(payload);
+		
 	}
-	
-	public static void allRules(final JsonObject msg, final EventBus bus) {
 
-		Vertx.vertx().executeBlocking(future -> {
-			try {
-				// load up the knowledge base
-				final KieServices ks = KieServices.Factory.get();
-				final KieContainer kContainer = ks.getKieClasspathContainer();
 
-				final KieSession kSession = kContainer.newKieSession("ksession-rules");
-				kSession.insert(bus);
+	public static void getToken(final JsonObject msg) throws IOException, InterruptedException, ExecutionException {
+		if (msg.getString("msg_type").equalsIgnoreCase("CMD_MSG")) {
+			if (msg.getString("cmd_type").equals("SOCIAL_MEDIA_FB_FETCH")) {
+				final String msgString = msg.toString();
+				System.out.println(msgString);
+				
+				final String clientId = System.getenv("FACEBOOK_CLIENTID");
+		        final String clientSecret =  System.getenv("FACEBOOK_SECRET");
+		        final String secretState = "secret93809";
+		        System.out.println(clientId);
+		        System.out.println(clientSecret);
+		        System.out.println(secretState);
+		        final OAuth20Service service = new ServiceBuilder(clientId)
+		                .apiSecret(clientSecret)
+		                .state(secretState)
+		                .callback("http://anishmaharjan.outcome-hub.com:8085/social/oauth_callback/")
+		                .build(FacebookApi.instance());
 
-				kSession.setGlobal("REACT_APP_QWANDA_API_URL", System.getenv("REACT_APP_QWANDA_API_URL"));
-				kSession.setGlobal("REACT_APP_VERTX_URL", System.getenv("REACT_APP_VERTX_URL"));
-				kSession.setGlobal("KEYCLOAKIP", System.getenv("HOSTIP"));
-				System.out.println("KieServices globals set: ");
-				final Map<String, String> keyValue = new HashMap<String, String>();
-				final String token = msg.getString("token");
-				keyValue.put("token", token);
-				kSession.insert(keyValue);
+		        //final Scanner in = new Scanner(System.in, "UTF-8");
 
-				final Globals globals = kSession.getGlobals();
-				System.out.println("Globals:" + globals.getGlobalKeys());
-				if (msg.getString("msg_type").equalsIgnoreCase("EVT_MSG")) {
+		        System.out.println();
 
-					kSession.insert(gson.fromJson(msg.toString(), QEventMessage.class));
-					kSession.fireAllRules();
-					System.out.println("EVNT MSG FIRED: ");
+		        // Get Authorization URL
+		        final String authorizationUrl = service.getAuthorizationUrl();
+		        System.out.println(authorizationUrl);
+		        System.out.println("Paste the authorization code here");
+		        System.out.print(">>");
+		       // final String code = in.nextLine();
+		        System.out.println();
+		        
+		         final OAuth2AccessToken accessToken = service.getAccessToken(msg.getString("code"));
+		         System.out.println("Access Token ::" + accessToken + "Raw response ::" + accessToken.getRawResponse());
+		        // System.out.println();
+		        
+		        final OAuthRequest request = new OAuthRequest(Verb.GET, PROTECTED_RESOURCE_URL3);
+		        service.signRequest(accessToken, request);
+		        final Response response = service.execute(request);
+		        
+		        System.out.println("Got it! Lets see what we found...");
+		        System.out.println();
+		        System.out.println(response.getCode());
+		        System.out.println(response.getBody());
+		        
+		        JsonObject fbData = new JsonObject(response.getBody());
+		        EBProducers.getToData().write(fbData);
+		        
+		        // JsonObject jObject = new JsonObject(response.getBody().trim());
+		        
+		        // JsonObject answer = new JsonObject();
+		     
 
-				} else if (msg.getString("msg_type").equalsIgnoreCase("DATA_MSG")) {
-					if (msg.getString("data_type").equals(Answer.class.getSimpleName())) {
-						final String msgString = msg.toString();
-						System.out.println(msgString);
-						kSession.insert(gson.fromJson(msg.toString(), QDataAnswerMessage.class));
-					} else if (msg.getString("data_type").equals(Ask.class.getSimpleName())) {
-						kSession.insert(gson.fromJson(msg.toString(), QDataAskMessage.class));
-					}
-					kSession.fireAllRules();
-					System.out.println("DATA MSG FIRED: ");
-				}
-			} catch (final Throwable t) {
-				t.printStackTrace();
-			}
-			future.complete();
-		}, res -> {
-			if (res.succeeded()) {
-			}
-		});
+		        // jObject.fieldNames().forEach(k ->
+		        // {
+		        // 		System.out.println(k);
+		        // 		Object fieldData = jObject.getValue(k);
+		        // 		System.out.println("Facebook :"+k+":"+fieldData.toString());
+		        		
+		    		   
+		        // }); 
 
-	}}
+		        // System.out.println();
+			} 			
+
+		}
+	}
+}
