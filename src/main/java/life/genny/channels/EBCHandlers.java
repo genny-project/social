@@ -166,7 +166,11 @@ public class EBCHandlers {
 		        System.out.println(response.getCode());
 		        System.out.println(response.getBody());
 		        
-		        JsonObject fbData = new JsonObject(response.getBody());
+				//JsonObject fbData = new JsonObject(response.getBody());
+				JsonObject fbData = new JsonObject();
+				fbData.put("msg_type", "DATA_MSG");
+				fbData.put("data_type", "Answer");
+				fbData.put("items",  response.getBody());
 		        EBProducers.getToData().write(fbData);
 		        
 		        // JsonObject jObject = new JsonObject(response.getBody().trim());
