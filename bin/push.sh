@@ -8,6 +8,6 @@ fi
 
 
 docker push gennyproject/social:"${version}"
-docker tag  gennyproject/social:"${version}"  gennyproject/social:latest
+docker tag -f gennyproject/social:"${version}"  gennyproject/social:latest
 docker push gennyproject/social:latest
 
