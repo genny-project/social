@@ -23,6 +23,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 
@@ -93,11 +94,6 @@ public class EBCHandlers {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			 JsonObject fbData = new JsonObject();
-			 fbData.put("msg_type", "DATA_MSG");
-			 fbData.put("data_type", "Answer");
-			 fbData.put("items",  "this is a facebook data");
-			EBProducers.getToData().write(fbData);
 		});
 		
 	}
@@ -124,72 +120,104 @@ public class EBCHandlers {
 
 
 	public static void getToken(final JsonObject msg) throws IOException, InterruptedException, ExecutionException {
-		if (msg.getString("msg_type").equalsIgnoreCase("CMD_MSG")) {
-			if (msg.getString("cmd_type").equals("SOCIAL_MEDIA_FB_FETCH")) {
-				final String msgString = msg.toString();
-				System.out.println(msgString);
-				
-				final String clientId = System.getenv("FACEBOOK_CLIENTID");
-		        final String clientSecret =  System.getenv("FACEBOOK_SECRET");
-		        final String secretState = "secret93809";
-		        System.out.println(clientId);
-		        System.out.println(clientSecret);
-		        System.out.println(secretState);
-		        final OAuth20Service service = new ServiceBuilder(clientId)
-		                .apiSecret(clientSecret)
-		                .state(secretState)
-		                .callback("http://anishmaharjan.outcome-hub.com:8085/social/oauth_callback/")
-		                .build(FacebookApi.instance());
 
-		        //final Scanner in = new Scanner(System.in, "UTF-8");
+		final String msgString = msg.toString();
+		System.out.println(msgString);
+		
+		final String clientId = System.getenv("FACEBOOK_CLIENTID");
+		final String clientSecret =  System.getenv("FACEBOOK_SECRET");
+		final String secretState = "secret93809";
+		System.out.println(clientId);
+		System.out.println(clientSecret);
+		System.out.println(secretState);
+		final OAuth20Service service = new ServiceBuilder(clientId)
+				.apiSecret(clientSecret)
+				.state(secretState)
+				.callback("http://localhost:3000/?data_state=%7B%22sourceCode%22%3A%22facebook%22%2C%22targetCode%22%3A%22PER_USER1%22%2C%22attributeCode%22%3A%22PRI_FB_BASIC%22%2C%22askId%22%3A%228%22%7D")
+				.build(FacebookApi.instance());
 
-		        System.out.println();
+		//final Scanner in = new Scanner(System.in, "UTF-8");
 
-		        // Get Authorization URL
-		        final String authorizationUrl = service.getAuthorizationUrl();
-		        System.out.println(authorizationUrl);
-		        System.out.println("Paste the authorization code here");
-		        System.out.print(">>");
-		       // final String code = in.nextLine();
-		        System.out.println();
-		        
-		         final OAuth2AccessToken accessToken = service.getAccessToken(msg.getString("code"));
-		         System.out.println("Access Token ::" + accessToken + "Raw response ::" + accessToken.getRawResponse());
-		        // System.out.println();
-		        
-		        final OAuthRequest request = new OAuthRequest(Verb.GET, PROTECTED_RESOURCE_URL3);
-		        service.signRequest(accessToken, request);
-		        final Response response = service.execute(request);
-		        
-		        System.out.println("Got it! Lets see what we found...");
-		        System.out.println();
-		        System.out.println(response.getCode());
-		        System.out.println(response.getBody());
-		        
-				//JsonObject fbData = new JsonObject(response.getBody());
-				JsonObject fbData = new JsonObject();
-				fbData.put("msg_type", "DATA_MSG");
-				fbData.put("data_type", "Answer");
-				fbData.put("items",  response.getBody());
-		        EBProducers.getToData().write(fbData);
-		        
-		        // JsonObject jObject = new JsonObject(response.getBody().trim());
-		        
-		        // JsonObject answer = new JsonObject();
-		     
+		System.out.println();
 
-		        // jObject.fieldNames().forEach(k ->
-		        // {
-		        // 		System.out.println(k);
-		        // 		Object fieldData = jObject.getValue(k);
-		        // 		System.out.println("Facebook :"+k+":"+fieldData.toString());
-		        		
-		    		   
-		        // }); 
+		// Get Authorization URL
+		final String authorizationUrl = service.getAuthorizationUrl();
+		System.out.println(authorizationUrl);
+		System.out.println("Paste the authorization code here");
+		System.out.print(">>");
+		// final String code = in.nextLine();
+		System.out.println();
+		
+		final OAuth2AccessToken accessToken = service.getAccessToken(msg.getString("value"));
+		System.out.println("Access Token ::" + accessToken + "Raw response ::" + accessToken.getRawResponse());
+		// System.out.println();
+		
+		final OAuthRequest request = new OAuthRequest(Verb.GET, PROTECTED_RESOURCE_URL3);
+		service.signRequest(accessToken, request);
+		final Response response = service.execute(request);
+		
+		System.out.println("Got it! Lets see what we found...");
+		System.out.println();
+		System.out.println(response.getCode());
+		System.out.println(response.getBody());
+		
+		// GET answer data
+		String sourceCode= msg.getString("sourceCode");
+		String targetCode= msg.getString("targetCode");
+		Boolean expired= msg.getBoolean("expired");
+		Boolean refused= msg.getBoolean("refused");
+		String weight= msg.getString("weight");
+		
+		System.out.println(sourceCode);
+		System.out.println(targetCode);
+		System.out.println(expired);
+		System.out.println(refused);
+		System.out.println(weight);
 
-		        // System.out.println();
-			} 			
+		// PREPARE JSON to send answer
+		// JsonObject data = new JsonObject();
+        // data.put("sourceCode", sourceCode);
+        // data.put("targetCode",targetCode); 
+        // data.put("expired",expired); 
+        // data.put("refused", refused);  
+        // data.put("weight", weight);
+		
+		// // PREPARE answer message
+		// JsonObject obj = new JsonObject();
+		// obj.put("msg_type", "DATA_MSG");
+		// obj.put("data_type", "Answer");
+		// obj.put("items", data);
 
-		}
+		JsonObject fbData = new JsonObject(response.getBody().trim());
+		fbData.fieldNames().forEach(key ->
+		{
+			
+			String initial= "FBK_";
+			String fieldKey= key.toUpperCase();
+			String attributeCode= initial + fieldKey;	
+			Object fieldValue = fbData.getValue(key);
+			System.out.println(attributeCode + "::" +fieldValue.toString() );        
+			
+			// PREPARE JSON to send answer
+			JsonObject data = new JsonObject();
+			data.put("sourceCode", sourceCode);
+			data.put("targetCode",targetCode); 
+			data.put("expired",expired); 
+			data.put("refused", refused);  
+			data.put("weight", weight);
+			data.put("attributeCode", attributeCode);
+			data.put("value", fieldValue.toString());
+
+
+			// PREPARE answer message
+			JsonObject obj = new JsonObject();
+			obj.put("msg_type", "DATA_MSG");
+			obj.put("data_type", "Answer");
+			obj.put("items", data);
+			EBProducers.getToData().write(obj);
+		}); 
+	
+		// EBProducers.getToData().write(obj);
+
 	}
 }
