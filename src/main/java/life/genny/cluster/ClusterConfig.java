@@ -54,7 +54,9 @@ public class ClusterConfig {
     final VertxOptions options = new VertxOptions();
 
     if (System.getenv("GENNYDEV") == null) {
-      final ClusterManager mgr = new HazelcastClusterManager(configHazelcastCluster());
+
+      final ClusterManager mgr = new HazelcastClusterManager();
+      //final ClusterManager mgr = new HazelcastClusterManager(configHazelcastCluster());
       options.setClusterManager(mgr);
       options.setEventBusOptions(configEBCluster());
     } else {

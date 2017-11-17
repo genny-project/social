@@ -27,6 +27,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -109,12 +110,27 @@ public class EBCHandlers {
 	     payload.put("msg_type", "CMD_MSG");
 	     payload.put("cmd_type", "SOCIAL_MEDIA_FB_FETCH");
 	     payload.put("code", "facebookCode");
+	     
+	     JsonArray items = new JsonArray();
+	     items.add(payload);
+	     System.out.println(items);
+	     
+	     JsonObject msg = new JsonObject();
+	     msg.put("data_type", "Answer");
+	     msg.put("msg_type", "DATA_MSG");
+	     msg.put("code", "facebookCode");
+	     msg.put("items", items);
 
 		logger.info("Received Facebook Code! - data");
 		System.out.println("************************************************************");
 		System.out.println("Facebook Code= "+payload.toString()); 
 		System.out.println("************************************************************");
-		getToken(payload);
+		
+		logger.info("Received Facebook Code! - data");
+		System.out.println("************************************************************");
+		System.out.println("Answer Message= "+msg.toString()); 
+		System.out.println("************************************************************");
+		//getToken(payload);
 		
 	}
 
@@ -133,7 +149,7 @@ public class EBCHandlers {
 		final OAuth20Service service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.state(secretState)
-				.callback("http://localhost:3000/?data_state=%7B%22sourceCode%22%3A%22facebook%22%2C%22targetCode%22%3A%22PER_USER1%22%2C%22attributeCode%22%3A%22PRI_FB_BASIC%22%2C%22askId%22%3A%228%22%7D")
+				.callback("http://localhost:3000/?data_state=%7B%22sourceCode%22%3A%22SOC_FB_BASIC%22%2C%22targetCode%22%3A%22PER_USER1%22%2C%22attributeCode%22%3A%22PRI_FB_BASIC%22%2C%22askId%22%3A%228%22%7D")
 				.build(FacebookApi.instance());
 
 		//final Scanner in = new Scanner(System.in, "UTF-8");
@@ -143,8 +159,6 @@ public class EBCHandlers {
 		// Get Authorization URL
 		final String authorizationUrl = service.getAuthorizationUrl();
 		System.out.println(authorizationUrl);
-		System.out.println("Paste the authorization code here");
-		System.out.print(">>");
 		// final String code = in.nextLine();
 		System.out.println();
 		
@@ -156,39 +170,24 @@ public class EBCHandlers {
 		service.signRequest(accessToken, request);
 		final Response response = service.execute(request);
 		
-		System.out.println("Got it! Lets see what we found...");
-		System.out.println();
-		System.out.println(response.getCode());
-		System.out.println(response.getBody());
+		System.out.println("-----------------------------------");
+		System.out.println("SUCCESS CODE ::"+response.getCode());
+		System.out.println("FACEBOOK DATA ::"+response.getBody());
+		System.out.println("-----------------------------------");
 		
 		// GET answer data
-		String sourceCode= msg.getString("sourceCode");
 		String targetCode= msg.getString("targetCode");
 		Boolean expired= msg.getBoolean("expired");
 		Boolean refused= msg.getBoolean("refused");
 		String weight= msg.getString("weight");
 		
-		System.out.println(sourceCode);
 		System.out.println(targetCode);
 		System.out.println(expired);
 		System.out.println(refused);
 		System.out.println(weight);
 
-		// PREPARE JSON to send answer
-		// JsonObject data = new JsonObject();
-        // data.put("sourceCode", sourceCode);
-        // data.put("targetCode",targetCode); 
-        // data.put("expired",expired); 
-        // data.put("refused", refused);  
-        // data.put("weight", weight);
-		
-		// // PREPARE answer message
-		// JsonObject obj = new JsonObject();
-		// obj.put("msg_type", "DATA_MSG");
-		// obj.put("data_type", "Answer");
-		// obj.put("items", data);
-
 		JsonObject fbData = new JsonObject(response.getBody().trim());
+		System.out.println("-----------------------------------");
 		fbData.fieldNames().forEach(key ->
 		{
 			
@@ -200,7 +199,7 @@ public class EBCHandlers {
 			
 			// PREPARE JSON to send answer
 			JsonObject data = new JsonObject();
-			data.put("sourceCode", sourceCode);
+			data.put("sourceCode", "SOC_FB_BASIC");
 			data.put("targetCode",targetCode); 
 			data.put("expired",expired); 
 			data.put("refused", refused);  
@@ -208,14 +207,17 @@ public class EBCHandlers {
 			data.put("attributeCode", attributeCode);
 			data.put("value", fieldValue.toString());
 
+			JsonArray items = new JsonArray();
+			items.add(data);
 
 			// PREPARE answer message
 			JsonObject obj = new JsonObject();
 			obj.put("msg_type", "DATA_MSG");
 			obj.put("data_type", "Answer");
-			obj.put("items", data);
+			obj.put("items", items);
 			EBProducers.getToData().write(obj);
 		}); 
+		System.out.println("-----------------------------------");
 	
 		// EBProducers.getToData().write(obj);
 
