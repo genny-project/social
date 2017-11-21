@@ -180,11 +180,13 @@ public class EBCHandlers {
 		Boolean expired= msg.getBoolean("expired");
 		Boolean refused= msg.getBoolean("refused");
 		String weight= msg.getString("weight");
+		String token= msg.getString("token");
 		
 		System.out.println(targetCode);
 		System.out.println(expired);
 		System.out.println(refused);
 		System.out.println(weight);
+		System.out.println(token);
 
 		JsonObject fbData = new JsonObject(response.getBody().trim());
 		System.out.println("-----------------------------------");
@@ -215,6 +217,7 @@ public class EBCHandlers {
 			obj.put("msg_type", "DATA_MSG");
 			obj.put("data_type", "Answer");
 			obj.put("items", items);
+			obj.put("token", token);
 			EBProducers.getToData().write(obj);
 		}); 
 		System.out.println("-----------------------------------");
