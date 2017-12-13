@@ -89,8 +89,11 @@ public class EBCHandlers {
 			System.out.println("8888888888888888888888888888888888888888888888888888888888880");
 			System.out.println("Facebook Code= "+payload.toString()); 
 			System.out.println("8888888888888888888888888888888888888888888888888888888888880");
+			String token = payload.getString("token");
+			String userCode= KeycloakUtils.getDecodedToken(token).getString("preferred_username");
+			
 			try {
-				getToken(payload);
+				getToken(payload, userCode);
 			} catch (IOException | InterruptedException | ExecutionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -135,22 +138,25 @@ public class EBCHandlers {
 	}
 
 
-	public static void getToken(final JsonObject msg) throws IOException, InterruptedException, ExecutionException {
+	public static void getToken(final JsonObject msg, final String state) throws IOException, InterruptedException, ExecutionException {
 
 		final String msgString = msg.toString();
 		System.out.println(msgString);
 		
+		System.out.println("Here is the sate :: " + state);
+		
+		
 		final String clientId = System.getenv("FACEBOOK_CLIENTID");
 		final String clientSecret =  System.getenv("FACEBOOK_SECRET");
 		final String callbackUrl =  System.getenv("SOCIAL_CALLBACK_URL");
-		final String secretState = "secret93809";
+		final String secretState = state;
 		System.out.println(clientId);
 		System.out.println(clientSecret);
 		System.out.println(secretState);
 		final OAuth20Service service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.state(secretState)
-				.callback(callbackUrl+"/?state=%7B%22sourceCode%22%3A%22SOC_FB_BASIC%22%2C%22targetCode%22%3A%22PER_USER1%22%2C%22attributeCode%22%3A%22PRI_FB_BASIC%22%2C%22askId%22%3A%2211%22%7D")
+				.callback(callbackUrl)
 				.build(FacebookApi.instance());
 		
 		
@@ -209,7 +215,7 @@ public class EBCHandlers {
 			data.put("targetCode",targetCode); 
 			data.put("expired",expired); 
 			data.put("refused", refused);  
-			data.put("weight", weight);
+			data.put("weight", 1);
 			data.put("attributeCode", attributeCode);
 			data.put("value", fieldValue.toString());
 
