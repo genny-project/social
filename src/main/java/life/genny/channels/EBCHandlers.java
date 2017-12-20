@@ -190,13 +190,11 @@ public class EBCHandlers {
 		String targetCode= msg.getString("targetCode");
 		Boolean expired= msg.getBoolean("expired");
 		Boolean refused= msg.getBoolean("refused");
-		Double weight= msg.getDouble("weight");
 		String token= msg.getString("token");
 		
 		System.out.println(targetCode);
 		System.out.println(expired);
 		System.out.println(refused);
-		System.out.println(weight);
 		System.out.println(token);
 
 		JsonObject fbData = new JsonObject(response.getBody().trim());
@@ -214,6 +212,7 @@ public class EBCHandlers {
 			JsonObject data = new JsonObject();
 			data.put("sourceCode", "SOC_FB_BASIC");
 			data.put("targetCode",targetCode); 
+			
 			data.put("expired",expired); 
 			data.put("refused", refused);  
 			data.put("weight", 1);
