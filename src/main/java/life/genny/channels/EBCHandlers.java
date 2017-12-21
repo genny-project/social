@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,6 +45,7 @@ import javassist.tools.framedump;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.DateTimeDeserializer;
+import life.genny.qwanda.Link;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QEventMessage;
@@ -282,8 +284,53 @@ public class EBCHandlers {
 			System.out.println("NAME ::  "+ name);
 			System.out.println("ID ::  "+ id);
 			
-			MergeUtil.createBaseEntity(sourceCode, linkCode, code, name, id, token);			
+			String imgValue= "http://graph.facebook.com/" + friendobj.getString("id") + "/picture" ;
+			String idValue= friendobj.getString("id");
+			System.out.println(imgValue);
+			
+			Link link = new Link(sourceCode, code, linkCode);
+			Answer imgAnswer = new Answer(code, code, "FBK_IMG_URL", imgValue);
+			Answer idAnswer = new Answer(code, code, "FBK_ID", idValue);
+			List<Answer> answerList = new ArrayList<Answer>();
+			answerList.add(idAnswer);
+			answerList.add(imgAnswer);
+			createBaseEntity(link, name, token, answerList);		
+			
+			
 		}
 
+	}
+	
+	public static boolean createBaseEntity(Link link, String name, String token, List<Answer> answerList) {
+		
+		BaseEntity be = new BaseEntity(link.getTargetCode(), name);
+		String qwandaServiceUrl = System.getenv("REACT_APP_QWANDA_API_URL");
+		
+		Gson gson1 = new Gson();
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson1 = gsonBuilder.create();
+        
+        String jsonBE = gson1.toJson(be);
+        try {
+        		// save BE
+            String output= QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/baseentitys", jsonBE, token);
+            // link PER_USER1 to friends
+            QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/entityentitys", gson1.toJson(link),token);
+            // save attributes
+			for (Answer answer : answerList) {
+				QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
+						gson1.toJson(answer), token);
+				System.out.println("i'm here");
+			}     
+            
+            System.out.println("this is the output :: "+ output);
+            
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+		
+		return true;
+		
 	}
 }
