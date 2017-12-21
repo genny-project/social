@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +27,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
+import com.google.gson.FieldNamingPolicy;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -38,12 +40,19 @@ import io.vertx.rxjava.core.eventbus.EventBus;
 import io.vertx.rxjava.ext.auth.oauth2.AccessToken;
 import io.vertx.rxjava.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.rxjava.ext.auth.oauth2.providers.KeycloakAuth;
+import javassist.tools.framedump;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QEventMessage;
 import life.genny.qwandautils.KeycloakUtils;
+import life.genny.qwandautils.MergeUtil;
+import life.genny.qwandautils.QwandaUtils;
+
+import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.Person;
 
 import java.util.Random;
 import java.util.Scanner;
@@ -59,6 +68,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+
 public class EBCHandlers {
 
 	private static final Logger logger = LoggerFactory.getLogger(EBCHandlers.class);
@@ -199,22 +209,39 @@ public class EBCHandlers {
 
 		JsonObject fbData = new JsonObject(response.getBody().trim());
 		System.out.println("-----------------------------------");
-		fbData.fieldNames().forEach(key ->
-		{
-			
-			String initial= "FBK_";
-			String fieldKey= key.toUpperCase();
-			String attributeCode= initial + fieldKey;	
+		
+		JsonObject friendObj = new JsonObject();
+		JsonObject familyObj = new JsonObject();
+		JsonArray friendList = new JsonArray();
+		JsonArray familyList = new JsonArray();
+		
+		int totalFriends = 0;
+		
+		for (String key : fbData.fieldNames()) {
+
+			String initial = "FBK_";
+			String fieldKey = key.toUpperCase();
+			String attributeCode = initial + fieldKey;
 			Object fieldValue = fbData.getValue(key);
-			System.out.println(attributeCode + "::" +fieldValue.toString() );        
+			System.out.println(attributeCode + "::" + fieldValue.toString());
+			
+			// Store friends and family
+			if (attributeCode.equals("FBK_FRIENDS")) {
+				friendObj = fbData.getJsonObject(key);
+				friendList = friendObj.getJsonArray("data");
+				totalFriends = friendObj.getJsonObject("summary").getInteger("total_count");
+			}
+			if (attributeCode.equals("FBK_FAMILY")) {
+				familyObj = fbData.getJsonObject(key);
+				familyList = familyObj.getJsonArray("data");			
+			}
 			
 			// PREPARE JSON to send answer
 			JsonObject data = new JsonObject();
 			data.put("sourceCode", "SOC_FB_BASIC");
-			data.put("targetCode",targetCode); 
-			
-			data.put("expired",expired); 
-			data.put("refused", refused);  
+			data.put("targetCode", targetCode);
+			data.put("expired", expired);
+			data.put("refused", refused);
 			data.put("weight", 1);
 			data.put("attributeCode", attributeCode);
 			data.put("value", fieldValue.toString());
@@ -229,10 +256,34 @@ public class EBCHandlers {
 			obj.put("items", items);
 			obj.put("token", token);
 			EBProducers.getToData().write(obj);
-		}); 
-		System.out.println("-----------------------------------");
-	
-		// EBProducers.getToData().write(obj);
+
+		}
+		System.out.println("----------------------------------------------------------------------");
+		System.out.println("\n FRIEND CLASS TYPE  ::  " + friendObj.getClass().getSimpleName());
+		System.out.println("\n TOTAL FRIENDS ::  " + totalFriends);
+		System.out.println("\n FRIEND OBJ  ::  " + friendObj);
+		System.out.println("\n FRIEND LIST  ::  " + friendList);
+		
+		System.out.println("----------------------------------------------------------------------");
+		System.out.println("\n FAMILY CLASS TYPE  ::  " + familyObj.getClass().getSimpleName());
+		System.out.println("\n FAMILY OBJ  ::  " + familyObj);
+		System.out.println("\n FAMILY LIST  ::  " + familyList);
+		System.out.println("----------------------------------------------------------------------");
+		
+		String sourceCode = "PER_USER1";
+		String linkCode = "LNK_FRIEND";
+		for(Object obj : friendList) {
+			JsonObject friendobj = (JsonObject) obj;
+			String name = friendobj.getString("name");
+			Long id = Long.parseLong(friendobj.getString("id"));
+			String initial= "PER_";
+			String code = initial + id;
+			System.out.println("CODE ::  "+ code);
+			System.out.println("NAME ::  "+ name);
+			System.out.println("ID ::  "+ id);
+			
+			MergeUtil.createBaseEntity(sourceCode, linkCode, code, name, id, token);			
+		}
 
 	}
 }
