@@ -99,16 +99,15 @@ public class EBCHandlers {
 		EBConsumers.getFromSocial().subscribe(arg -> {
 			logger.info("Received Facebook Code! - data");
 			final JsonObject payload = new JsonObject(arg.body().toString());
-			System.out.println("8888888888888888888888888888888888888888888888888888888888880");
-			System.out.println("Facebook Code= "+payload.toString()); 
-			System.out.println("8888888888888888888888888888888888888888888888888888888888880");
+			System.out.println("------------------------------------------------------------------------");
+			System.out.println("Facebook Code   ::   "+payload.toString()); 
+			System.out.println("------------------------------------------------------------------------\n");
 			String token = payload.getString("token");
 			String userCode= KeycloakUtils.getDecodedToken(token).getString("preferred_username");
-			
+			//System.out.println(userCode);
 			try {
-				getToken(payload, userCode);
+				getFacebookData(payload, userCode);
 			} catch (IOException | InterruptedException | ExecutionException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
@@ -119,84 +118,44 @@ public class EBCHandlers {
     private static final String NETWORK_NAME = "Facebook";
     private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/v2.8/me";
     private static final String PROTECTED_RESOURCE_URL3 = "https://graph.facebook.com/v2.8/me?fields=id,name,about,age_range,birthday,email,first_name,gender,last_name,relationship_status,timezone,hometown,favorite_athletes,family,friends";
+    public static final String sourceCode = "PER_USER1";
+    public static final String linkFriend = "LNK_FRIEND";
+    public static final String linkFamily= "LNK_FRIEND";
     
-    
-	public static void main(String...str) throws IOException, InterruptedException, ExecutionException {
-	     JsonObject payload = new JsonObject();
-	     payload.put("msg_type", "CMD_MSG");
-	     payload.put("cmd_type", "SOCIAL_MEDIA_FB_FETCH");
-	     payload.put("code", "facebookCode");
-	     
-	     JsonArray items = new JsonArray();
-	     items.add(payload);
-	     System.out.println(items);
-	     
-	     JsonObject msg = new JsonObject();
-	     msg.put("data_type", "Answer");
-	     msg.put("msg_type", "DATA_MSG");
-	     msg.put("code", "facebookCode");
-	     msg.put("items", items);
-
-		logger.info("Received Facebook Code! - data");
-		System.out.println("************************************************************");
-		System.out.println("Facebook Code= "+payload.toString()); 
-		System.out.println("************************************************************");
-		
-		logger.info("Received Facebook Code! - data");
-		System.out.println("************************************************************");
-		System.out.println("Answer Message= "+msg.toString()); 
-		System.out.println("************************************************************");
-		//getToken(payload);
-		
-	}
-
-
-	public static void getToken(final JsonObject msg, final String state) throws IOException, InterruptedException, ExecutionException {
-
-		final String msgString = msg.toString();
-		System.out.println(msgString);
-		
-		System.out.println("Here is the sate :: " + state);
-		
-		
+	public static void getFacebookData(final JsonObject msg, final String state) throws IOException, InterruptedException, ExecutionException {
+//		System.out.println("Here is the user state   ::   " + state);
+//		final String msgString = msg.toString();
+//		System.out.println(msgString);
+			
 		final String clientId = System.getenv("FACEBOOK_CLIENTID");
 		final String clientSecret =  System.getenv("FACEBOOK_SECRET");
 		final String callbackUrl =  System.getenv("SOCIAL_CALLBACK_URL");
 		final String secretState = state;
-		System.out.println(clientId);
-		System.out.println(clientSecret);
-		System.out.println(secretState);
+		System.out.println("Client ID   ::   "+ clientId);
+		System.out.println("Client Secret   ::   "+ clientSecret);
+		System.out.println("Secret State   ::   "+ secretState);
 		final OAuth20Service service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.state(secretState)
 				.callback(callbackUrl)
 				.build(FacebookApi.instance());
-		
-		
-		
-
-		//final Scanner in = new Scanner(System.in, "UTF-8");
-
-		System.out.println();
 
 		// Get Authorization URL
 		final String authorizationUrl = service.getAuthorizationUrl();
-		System.out.println(authorizationUrl);
-		// final String code = in.nextLine();
-		System.out.println();
-		
+		System.out.println("Recieved Authorization URl   ::   "+authorizationUrl);
+		// Get Access Token
 		final OAuth2AccessToken accessToken = service.getAccessToken(msg.getString("value"));
-		System.out.println("Access Token ::" + accessToken + "Raw response ::" + accessToken.getRawResponse());
-		// System.out.println();
+		System.out.println("Access Token   ::   " + accessToken);
+		System.out.println("Raw response   ::   " + accessToken.getRawResponse());
 		
 		final OAuthRequest request = new OAuthRequest(Verb.GET, PROTECTED_RESOURCE_URL3);
 		service.signRequest(accessToken, request);
 		final Response response = service.execute(request);
 		
-		System.out.println("-----------------------------------");
-		System.out.println("SUCCESS CODE ::"+response.getCode());
-		System.out.println("FACEBOOK DATA ::"+response.getBody());
-		System.out.println("-----------------------------------");
+		System.out.println("------------------------------------------------------------------------");
+		System.out.println("SUCCESS CODE   ::   "+response.getCode());
+		System.out.println("FACEBOOK DATA  ::   "+response.getBody());
+		System.out.println("------------------------------------------------------------------------\n");
 		
 		// GET answer data
 		String targetCode= msg.getString("targetCode");
@@ -204,38 +163,37 @@ public class EBCHandlers {
 		Boolean refused= msg.getBoolean("refused");
 		String token= msg.getString("token");
 		
-		System.out.println(targetCode);
-		System.out.println(expired);
-		System.out.println(refused);
-		System.out.println(token);
+		System.out.println("Target Code   ::   "+ targetCode);
+		System.out.println("Expired       ::   "+ expired);
+		System.out.println("Refused       ::   "+ refused);
 
 		JsonObject fbData = new JsonObject(response.getBody().trim());
-		System.out.println("-----------------------------------");
+		System.out.println("------------------------------------------------------------------------");
 		
+		// Initialize JsonObjects
 		JsonObject friendObj = new JsonObject();
 		JsonObject familyObj = new JsonObject();
 		JsonArray friendList = new JsonArray();
-		JsonArray familyList = new JsonArray();
-		
+		JsonArray familyList = new JsonArray();		
 		int totalFriends = 0;
 		
 		for (String key : fbData.fieldNames()) {
-
-			String initial = "FBK_";
-			String fieldKey = key.toUpperCase();
-			String attributeCode = initial + fieldKey;
+			
+			String attributeCode = getAttributeCode(key);
 			Object fieldValue = fbData.getValue(key);
-			System.out.println(attributeCode + "::" + fieldValue.toString());
+			System.out.println(attributeCode + "   ::   " + fieldValue.toString());
 			
 			// Store friends and family
 			if (attributeCode.equals("FBK_FRIENDS")) {
 				friendObj = fbData.getJsonObject(key);
 				friendList = friendObj.getJsonArray("data");
 				totalFriends = friendObj.getJsonObject("summary").getInteger("total_count");
+				continue;
 			}
 			if (attributeCode.equals("FBK_FAMILY")) {
 				familyObj = fbData.getJsonObject(key);
-				familyList = familyObj.getJsonArray("data");			
+				familyList = familyObj.getJsonArray("data");		
+				continue;
 			}
 			
 			// PREPARE JSON to send answer
@@ -261,45 +219,83 @@ public class EBCHandlers {
 
 		}
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("\n FRIEND CLASS TYPE  ::  " + friendObj.getClass().getSimpleName());
-		System.out.println("\n TOTAL FRIENDS ::  " + totalFriends);
-		System.out.println("\n FRIEND OBJ  ::  " + friendObj);
-		System.out.println("\n FRIEND LIST  ::  " + friendList);
+		System.out.println("\nFRIEND CLASS TYPE  ::  " + friendObj.getClass().getSimpleName());
+		System.out.println("\nTOTAL FRIENDS      ::  " + totalFriends);
+		System.out.println("\nFRIEND OBJ         ::  " + friendObj);
+		System.out.println("\nFRIEND LIST        ::  " + friendList);
 		
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("\n FAMILY CLASS TYPE  ::  " + familyObj.getClass().getSimpleName());
-		System.out.println("\n FAMILY OBJ  ::  " + familyObj);
-		System.out.println("\n FAMILY LIST  ::  " + familyList);
+		System.out.println("\nFAMILY CLASS TYPE  ::  " + familyObj.getClass().getSimpleName());
+		System.out.println("\nFAMILY OBJ         ::  " + familyObj);
+		System.out.println("\nFAMILY LIST        ::  " + familyList);
 		System.out.println("----------------------------------------------------------------------");
 		
-		String sourceCode = "PER_USER1";
-		String linkCode = "LNK_FRIEND";
-		for(Object obj : friendList) {
-			JsonObject friendobj = (JsonObject) obj;
-			String name = friendobj.getString("name");
+		for(Object obj1 : friendList) {
+			
+			// convert plain object -> JsonObject
+			JsonObject friendobj = (JsonObject) obj1;
+			
+			//get name, id, targetCode, image_url			
 			Long id = Long.parseLong(friendobj.getString("id"));
-			String initial= "PER_";
-			String code = initial + id;
-			System.out.println("CODE ::  "+ code);
-			System.out.println("NAME ::  "+ name);
-			System.out.println("ID ::  "+ id);
+			String code = getTargetCode(friendobj);
+			String name = friendobj.getString("name");
 			
 			String idValue= friendobj.getString("id");
-			String imgValue= "http://graph.facebook.com/" + idValue + "/picture" ;
+			String image_url= getFacebookImage(idValue);
 			
-			System.out.println(imgValue);
 			
-			Link link = new Link(sourceCode, code, linkCode);
-			Answer imgAnswer = new Answer(code, code, "FBK_IMGURL", imgValue);
+						
+			System.out.println("FACEBOOK ID   ::  "+ id);		
+			System.out.println("BE CODE       ::  "+ code);
+			System.out.println("NAME          ::  "+ name);
+			System.out.println("FACEBOOK IMG  ::  "+ image_url);
+			System.out.println("---------------------------------------------");
+			
+			Link link = new Link(sourceCode, code, linkFriend);
+			Answer imgAnswer = new Answer(code, code, "FBK_IMGURL", image_url);
 			Answer idAnswer = new Answer(code, code, "FBK_ID", idValue);
 			List<Answer> answerList = new ArrayList<Answer>();	
 			answerList.add(imgAnswer);
 			answerList.add(idAnswer);
+			
+			for(Object obj2 : familyList) {
+				// convert plain object -> JsonObject
+				JsonObject familyobj = (JsonObject) obj2;
+				
+				if( ( familyobj.getString("id") ).equals( friendobj.getString("id") ) ) {					
+					String relationship= familyobj.getString("relationship");
+					System.out.println("Relationship found   ::   "+relationship );
+					Answer relnAnswer = new Answer(code, code, "FBK_RELATIONSHIP", relationship);
+					answerList.add(relnAnswer);
+				}
+				
+			}
+			
 			createBaseEntity(link, name, token, answerList);		
-			
-			
+			System.out.println("----------------------------------------------------------------------\n");
 		}
+		
+		
 
+	}
+	
+	public static String getAttributeCode(String key) {
+		String initial = "FBK_";
+		String fieldKey = key.toUpperCase();
+		String attributeCode = initial + fieldKey;
+		return attributeCode;
+	}
+	
+	public static String getTargetCode(JsonObject friendobj) {
+		Long id = Long.parseLong(friendobj.getString("id"));
+		String initial= "PER_";
+		String code = initial + id;
+		return code;
+	}
+	
+	public static String getFacebookImage(String idValue) {
+		String image_url= "http://graph.facebook.com/" + idValue + "/picture" ;
+		return image_url;
 	}
 	
 	public static boolean createBaseEntity(Link link, String name, String token, List<Answer> answerList) {
@@ -315,27 +311,27 @@ public class EBCHandlers {
         String jsonBE = gson1.toJson(be);
         try {
         		// save BE
-            String output= QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/baseentitys", jsonBE, token);
+            QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/baseentitys", jsonBE, token);
             // link PER_USER1 to friends
             QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/entityentitys", gson1.toJson(link),token);
             // save attributes
             int i=1;
 			for (Answer answer : answerList) {
-				System.out.println("here's the answer  :: " + i + ":: " + answer.toString());
-				String output2= QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
+				System.out.println("Answer      " + i + "::   " + answer.toString());
+				QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
 						gson1.toJson(answer), token);
-				System.out.println("count  :: "+i);
-				System.out.println("this is the output :: "+ output2);
 				i++;
-			}     
-            
-            
+			}                 
             
         }catch (Exception e) {
             e.printStackTrace();
         }
 		
 		return true;
+		
+	}
+	
+	public static void main(String...str) throws IOException, InterruptedException, ExecutionException {
 		
 	}
 }
