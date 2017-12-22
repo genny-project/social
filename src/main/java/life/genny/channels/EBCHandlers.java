@@ -284,16 +284,17 @@ public class EBCHandlers {
 			System.out.println("NAME ::  "+ name);
 			System.out.println("ID ::  "+ id);
 			
-			String imgValue= "http://graph.facebook.com/" + friendobj.getString("id") + "/picture" ;
 			String idValue= friendobj.getString("id");
+			String imgValue= "http://graph.facebook.com/" + idValue + "/picture" ;
+			
 			System.out.println(imgValue);
 			
 			Link link = new Link(sourceCode, code, linkCode);
-			Answer imgAnswer = new Answer(code, code, "FBK_IMG_URL", imgValue);
+			Answer imgAnswer = new Answer(code, code, "FBK_IMGURL", imgValue);
 			Answer idAnswer = new Answer(code, code, "FBK_ID", idValue);
-			List<Answer> answerList = new ArrayList<Answer>();
-			answerList.add(idAnswer);
+			List<Answer> answerList = new ArrayList<Answer>();	
 			answerList.add(imgAnswer);
+			answerList.add(idAnswer);
 			createBaseEntity(link, name, token, answerList);		
 			
 			
@@ -318,13 +319,17 @@ public class EBCHandlers {
             // link PER_USER1 to friends
             QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/entityentitys", gson1.toJson(link),token);
             // save attributes
+            int i=1;
 			for (Answer answer : answerList) {
-				QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
+				System.out.println("here's the answer  :: " + i + ":: " + answer.toString());
+				String output2= QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
 						gson1.toJson(answer), token);
-				System.out.println("i'm here");
+				System.out.println("count  :: "+i);
+				System.out.println("this is the output :: "+ output2);
+				i++;
 			}     
             
-            System.out.println("this is the output :: "+ output);
+            
             
         }catch (Exception e) {
             e.printStackTrace();
