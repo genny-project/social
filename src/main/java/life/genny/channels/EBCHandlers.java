@@ -97,19 +97,29 @@ public class EBCHandlers {
 	
 	public static void registerHandlers(final EventBus eventBus){
 		EBConsumers.getFromSocial().subscribe(arg -> {
-			logger.info("Received Facebook Code! - data");
-			final JsonObject payload = new JsonObject(arg.body().toString());
-			System.out.println("------------------------------------------------------------------------");
-			System.out.println("Facebook Code   ::   "+payload.toString()); 
-			System.out.println("------------------------------------------------------------------------\n");
-			String token = payload.getString("token");
-			String userCode= KeycloakUtils.getDecodedToken(token).getString("preferred_username");
-			//System.out.println(userCode);
-			try {
-				getFacebookData(payload, userCode);
-			} catch (IOException | InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-			}
+			
+			
+			
+			Vertx.vertx().executeBlocking(arg1 -> {
+				
+				System.out.println("Received Facebook Code! - data");
+				final JsonObject payload = new JsonObject(arg.body().toString());
+				System.out.println("------------------------------------------------------------------------");
+				System.out.println("Facebook Code   ::   "+payload.toString()); 
+				System.out.println("------------------------------------------------------------------------\n");
+				String token = payload.getString("token");
+				String userCode= KeycloakUtils.getDecodedToken(token).getString("preferred_username");
+				//System.out.println(userCode);
+				try {
+					getFacebookData(payload, userCode);
+				} catch (IOException | InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+				
+			}, arg2 -> {
+				
+			});
+			
 		});
 		
 	}
@@ -121,6 +131,7 @@ public class EBCHandlers {
     public static final String sourceCode = "PER_USER1";
     public static final String linkFriend = "LNK_FRIEND";
     public static final String linkFamily= "LNK_FRIEND";
+    public static final String qwandaServiceUrl = System.getenv("REACT_APP_QWANDA_API_URL");
     
 	public static void getFacebookData(final JsonObject msg, final String state) throws IOException, InterruptedException, ExecutionException {
 //		System.out.println("Here is the user state   ::   " + state);
@@ -181,7 +192,8 @@ public class EBCHandlers {
 			
 			String attributeCode = getAttributeCode(key);
 			Object fieldValue = fbData.getValue(key);
-			System.out.println(attributeCode + "   ::   " + fieldValue.toString());
+			String value = fieldValue.toString();
+			System.out.println(attributeCode + "   ::   " + value);
 			
 			// Store friends and family
 			if (attributeCode.equals("FBK_FRIENDS")) {
@@ -196,26 +208,34 @@ public class EBCHandlers {
 				continue;
 			}
 			
-			// PREPARE JSON to send answer
-			JsonObject data = new JsonObject();
-			data.put("sourceCode", "SOC_FB_BASIC");
-			data.put("targetCode", targetCode);
-			data.put("expired", expired);
-			data.put("refused", refused);
-			data.put("weight", 1);
-			data.put("attributeCode", attributeCode);
-			data.put("value", fieldValue.toString());
-
-			JsonArray items = new JsonArray();
-			items.add(data);
-
-			// PREPARE answer message
-			JsonObject obj = new JsonObject();
-			obj.put("msg_type", "DATA_MSG");
-			obj.put("data_type", "Answer");
-			obj.put("items", items);
-			obj.put("token", token);
-			EBProducers.getToData().write(obj);
+			if (attributeCode.equals("FBK_ID")) {			
+				String image= getFacebookImage(value);
+				attributeCode = "FBK_IMGURL";
+				value= image;			
+			}
+			
+			saveAnswer("SOC_FB_BASIC", targetCode, expired, refused, attributeCode, value, token);
+			
+//			// PREPARE JSON to send answer
+//			JsonObject data = new JsonObject();
+//			data.put("sourceCode", "SOC_FB_BASIC");
+//			data.put("targetCode", targetCode);
+//			data.put("expired", expired);
+//			data.put("refused", refused);
+//			data.put("weight", 1);
+//			data.put("attributeCode", attributeCode);
+//			data.put("value", value);
+//
+//			JsonArray items = new JsonArray();
+//			items.add(data);
+//
+//			// PREPARE answer message
+//			JsonObject obj = new JsonObject();
+//			obj.put("msg_type", "DATA_MSG");
+//			obj.put("data_type", "Answer");
+//			obj.put("items", items);
+//			obj.put("token", token);
+//			EBProducers.getToData().write(obj);
 
 		}
 		System.out.println("----------------------------------------------------------------------");
@@ -229,7 +249,7 @@ public class EBCHandlers {
 		System.out.println("\nFAMILY OBJ         ::  " + familyObj);
 		System.out.println("\nFAMILY LIST        ::  " + familyList);
 		System.out.println("----------------------------------------------------------------------");
-		
+   		
 		for(Object obj1 : friendList) {
 			
 			// convert plain object -> JsonObject
@@ -242,21 +262,25 @@ public class EBCHandlers {
 			
 			String idValue= friendobj.getString("id");
 			String image_url= getFacebookImage(idValue);
-			
-			
+					
 						
 			System.out.println("FACEBOOK ID   ::  "+ id);		
 			System.out.println("BE CODE       ::  "+ code);
 			System.out.println("NAME          ::  "+ name);
 			System.out.println("FACEBOOK IMG  ::  "+ image_url);
 			System.out.println("---------------------------------------------");
+
 			
 			Link link = new Link(sourceCode, code, linkFriend);
 			Answer imgAnswer = new Answer(code, code, "FBK_IMGURL", image_url);
+				   imgAnswer.setWeight(1.0);
 			Answer idAnswer = new Answer(code, code, "FBK_ID", idValue);
+			Answer nameAnswer = new Answer(code, code, "FBK_FULLNAME", name);
+			
 			List<Answer> answerList = new ArrayList<Answer>();	
 			answerList.add(imgAnswer);
 			answerList.add(idAnswer);
+			answerList.add(nameAnswer);
 			
 			for(Object obj2 : familyList) {
 				// convert plain object -> JsonObject
@@ -273,12 +297,45 @@ public class EBCHandlers {
 			
 			createBaseEntity(link, name, token, answerList);		
 			System.out.println("----------------------------------------------------------------------\n");
+			
 		}
+		// PREPARE answer message
+		JsonObject data = new JsonObject();
+		data.put("code", "SEND_FB_FRIENDS");
 		
+		JsonObject obj = new JsonObject();
+		obj.put("msg_type", "EVT_MSG");
+		obj.put("event_type", "SEND_FB_FRIENDS");
+		obj.put("data", data);
+		obj.put("token", token);
+		EBProducers.getToCmds().write(obj);
 		
 
+		
 	}
+	public static void saveAnswer(String sourceCode, String targetCode, Boolean expired, Boolean refused, String attributeCode, String value, String token) {
+		// PREPARE JSON to send answer
+		JsonObject data = new JsonObject();
+		data.put("sourceCode", "SOC_FB_BASIC");
+		data.put("targetCode", targetCode);
+		data.put("expired", expired);
+		data.put("refused", refused);
+		data.put("weight", 1);
+		data.put("attributeCode", attributeCode);
+		data.put("value", value);
 	
+		JsonArray items = new JsonArray();
+		items.add(data);
+	
+		// PREPARE answer message
+		JsonObject obj = new JsonObject();
+		obj.put("msg_type", "DATA_MSG");
+		obj.put("data_type", "Answer");
+		obj.put("items", items);
+		obj.put("token", token);
+		EBProducers.getToData().write(obj);
+
+	}
 	public static String getAttributeCode(String key) {
 		String initial = "FBK_";
 		String fieldKey = key.toUpperCase();
