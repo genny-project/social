@@ -302,13 +302,14 @@ public class EBCHandlers {
 		// PREPARE answer message
 		JsonObject data = new JsonObject();
 		data.put("code", "SEND_FB_FRIENDS");
+		data.put("value", "6");
 		
 		JsonObject obj = new JsonObject();
 		obj.put("msg_type", "EVT_MSG");
 		obj.put("event_type", "SEND_FB_FRIENDS");
 		obj.put("data", data);
 		obj.put("token", token);
-		EBProducers.getToCmds().write(obj);
+		EBProducers.getToEvents().write(obj);
 		
 
 		
