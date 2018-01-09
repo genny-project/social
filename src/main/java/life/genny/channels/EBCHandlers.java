@@ -122,7 +122,7 @@ public class EBCHandlers {
     private static final String NETWORK_NAME = "Facebook";
     private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/v2.8/me";
     private static final String PROTECTED_RESOURCE_URL3 = "https://graph.facebook.com/v2.8/me?fields=id,name,about,age_range,birthday,email,first_name,gender,last_name,relationship_status,timezone,hometown,favorite_athletes,family,friends";
-    public static final String sourceCode = "PER_USER1";
+    //public static final String sourceCode = "PER_USER1";
     public static final String linkFriend = "LNK_FRIEND";
     public static final String linkFamily= "LNK_FRIEND";
     public static final String qwandaServiceUrl = System.getenv("REACT_APP_QWANDA_API_URL");
@@ -163,6 +163,7 @@ public class EBCHandlers {
 		
 		// GET answer data
 		String targetCode= msg.getString("targetCode");
+		String sourceCode= targetCode;
 		Boolean expired= msg.getBoolean("expired");
 		Boolean refused= msg.getBoolean("refused");
 		String token= msg.getString("token");
@@ -206,7 +207,7 @@ public class EBCHandlers {
 				attributeCode = "FBK_IMGURL";
 				value= image;			
 			}		
-			saveAnswer("SOC_FB_BASIC", targetCode, expired, refused, attributeCode, value, token);
+			saveAnswer(targetCode, targetCode, expired, refused, attributeCode, value, token);
 		}
 		System.out.println("----------------------------------------------------------------------");
 		System.out.println("\nFRIEND CLASS TYPE  ::  " + friendObj.getClass().getSimpleName());
@@ -364,6 +365,46 @@ public class EBCHandlers {
 	}
 	
 	public static void main(String...str) throws IOException, InterruptedException, ExecutionException {
-		
-	}
+
+        Answer ans = new Answer("asd", "sdfsd", "sdf", "asd");
+        Answer ans1 = new Answer("asd1", "sdfsd1", "sdf1", "asd1");
+
+        JsonArray array = new JsonArray();
+        array.add(ans);
+        array.add(ans1);
+        System.out.println(array);
+        
+        List<Answer> completeList = new ArrayList<Answer>();
+        List<Answer> retainList = new ArrayList<Answer>();
+        
+        for(Object obj : array) {
+            Answer answerobj = gson.fromJson(obj.toString(), Answer.class);
+            completeList.add(answerobj);
+        }
+        
+        
+        Gson gson1 = new Gson();
+        //CompleteSet = gson1.fromJson(ansStr, List.class);
+        //System.out.println("retain set::"+CompleteSet.toString());
+        
+        for(Answer answer : completeList) {
+            
+            switch(answer.getAttributeCode()) {
+            case("PRI_FIRSTNAME") :
+                retainList.add(answer);
+                break;
+            }
+            
+        }
+
+        Answer[] ansWant = {ans1};
+        completeList.removeAll(retainList);
+        
+        String[] strArray = (String[]) completeList.toArray(new String[0]);
+        
+        JsonArray friendArray= new JsonArray();        
+        
+        
+        Answer[] items = (Answer[]) completeList.toArray();
+    }
 }
