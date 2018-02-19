@@ -1,5 +1,6 @@
 package life.genny.channels;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,9 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.FieldNamingPolicy;
 
+
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -43,12 +47,20 @@ import io.vertx.rxjava.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.rxjava.ext.auth.oauth2.providers.KeycloakAuth;
 import javassist.tools.framedump;
 import life.genny.qwanda.Answer;
+import life.genny.qwanda.GPS;
+import life.genny.qwanda.entity.User;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
+import life.genny.qwanda.message.QDataGPSMessage;
+import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
+import life.genny.qwanda.message.QEventBtnClickMessage;
+import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.message.QEventMessage;
+import life.genny.qwanda.rule.Rule;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.MergeUtil;
 import life.genny.qwandautils.QwandaUtils;
@@ -66,10 +78,9 @@ import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
 
-import io.vertx.core.json.JsonObject;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+
 
 public class EBCHandlers {
 
@@ -137,6 +148,8 @@ public class EBCHandlers {
 		System.out.println("Client ID       ::   "+ clientId);
 		System.out.println("Client Secret   ::   "+ clientSecret);
 		System.out.println("Secret State    ::   "+ secretState);
+		System.out.println("Secret State    ::   "+ msg.toString());
+		
 		final OAuth20Service service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.state(secretState)
