@@ -148,7 +148,10 @@ public class EBCHandlers {
 		System.out.println("Client ID       ::   "+ clientId);
 		System.out.println("Client Secret   ::   "+ clientSecret);
 		System.out.println("Secret State    ::   "+ secretState);
-		System.out.println("Secret State    ::   "+ msg.toString());
+		System.out.println("Message Data    ::   "+ msg.toString());
+		
+		System.out.println(msg.containsKey("value"));
+		System.out.println(msg.getValue("value").toString());
 		
 		final OAuth20Service service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
