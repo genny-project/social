@@ -258,6 +258,7 @@ public class EBCHandlers {
 			System.out.println("---------------------------------------------");
 			
 			Link link = new Link(sourceCode, code, linkFriend);
+			link.setWeight(1.0);
 			Answer imgAnswer = new Answer(code, code, "FBK_IMGURL", image_url);
 				   imgAnswer.setWeight(1.0);
 			Answer idAnswer = new Answer(code, code, "FBK_ID", idValue);
