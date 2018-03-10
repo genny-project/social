@@ -46,6 +46,8 @@ import io.vertx.rxjava.ext.auth.oauth2.AccessToken;
 import io.vertx.rxjava.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.rxjava.ext.auth.oauth2.providers.KeycloakAuth;
 import javassist.tools.framedump;
+import life.genny.channel.Consumer;
+import life.genny.channel.Producer;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.entity.User;
@@ -107,7 +109,7 @@ public class EBCHandlers {
 	
 	
 	public static void registerHandlers(final EventBus eventBus){
-		EBConsumers.getFromSocial().subscribe(arg -> {		
+		Consumer.getFromSocial().subscribe(arg -> {		
 			Vertx.vertx().executeBlocking(arg1 -> {			
 				System.out.println("Received Facebook Code! - data");
 				final JsonObject payload = new JsonObject(arg.body().toString());
@@ -307,7 +309,7 @@ public class EBCHandlers {
 		obj.put("data_type", "Answer");
 		obj.put("items", items);
 		obj.put("token", token);
-		EBProducers.getToData().write(obj);
+		Producer.getToData().write(obj);
 
 	}
 	
@@ -378,7 +380,7 @@ public class EBCHandlers {
 		obj.put("event_type", "SEND_FB_FRIENDS");
 		obj.put("data", data);
 		obj.put("token", token);
-		EBProducers.getToEvents().write(obj);
+		Producer.getToEvents().write(obj);
 	}
 	
 	public static void main(String...str) throws IOException, InterruptedException, ExecutionException {
