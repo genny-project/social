@@ -67,11 +67,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>life.genny</groupId>
-			<artifactId>qwanda-utils</artifactId>
-			<version>${qwanda-utils.version}</version>
-		</dependency>
+
 
 
 		<dependency>
