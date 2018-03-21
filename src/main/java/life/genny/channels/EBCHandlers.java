@@ -1,77 +1,17 @@
 package life.genny.channels;
 
-import java.lang.invoke.MethodHandles;
+import java.io.IOException;
 import java.lang.reflect.Type;
-
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.kie.api.KieServices;
-import org.kie.api.runtime.Globals;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 
-//import com.apple.eawt.AppEvent.UserSessionEvent;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.FieldNamingPolicy;
-
-
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.auth.oauth2.OAuth2FlowType;
-import io.vertx.rxjava.core.Vertx;
-import io.vertx.rxjava.core.buffer.Buffer;
-import io.vertx.rxjava.core.eventbus.EventBus;
-import io.vertx.rxjava.ext.auth.oauth2.AccessToken;
-import io.vertx.rxjava.ext.auth.oauth2.OAuth2Auth;
-import io.vertx.rxjava.ext.auth.oauth2.providers.KeycloakAuth;
-import javassist.tools.framedump;
-import life.genny.channel.Consumer;
-import life.genny.channel.Producer;
-import life.genny.qwanda.Answer;
-import life.genny.qwanda.GPS;
-import life.genny.qwanda.entity.User;
-import life.genny.qwanda.Ask;
-import life.genny.qwanda.DateTimeDeserializer;
-import life.genny.qwanda.Link;
-import life.genny.qwanda.message.QDataAnswerMessage;
-import life.genny.qwanda.message.QDataAskMessage;
-import life.genny.qwanda.message.QDataGPSMessage;
-import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
-import life.genny.qwanda.message.QEventBtnClickMessage;
-import life.genny.qwanda.message.QEventLinkChangeMessage;
-import life.genny.qwanda.message.QEventMessage;
-import life.genny.qwanda.rule.Rule;
-import life.genny.qwandautils.JsonUtils;
-import life.genny.qwandautils.KeycloakUtils;
-import life.genny.qwandautils.MergeUtil;
-import life.genny.qwandautils.QwandaUtils;
-
-import life.genny.qwanda.entity.BaseEntity;
-import life.genny.qwanda.entity.Person;
-
-import java.util.Random;
-import java.util.Scanner;
 import com.github.scribejava.apis.FacebookApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth2AccessToken;
@@ -79,9 +19,30 @@ import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
+//import com.apple.eawt.AppEvent.UserSessionEvent;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import io.vertx.rxjava.core.Vertx;
+import io.vertx.rxjava.core.eventbus.EventBus;
+import life.genny.channel.Consumer;
+import life.genny.channel.Producer;
+import life.genny.qwanda.Answer;
+import life.genny.qwanda.DateTimeDeserializer;
+import life.genny.qwanda.Link;
+import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwandautils.KeycloakUtils;
+import life.genny.qwandautils.QwandaUtils;
 
 
 public class EBCHandlers {
