@@ -67,11 +67,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>life.genny</groupId>
-			<artifactId>qwanda-utils</artifactId>
-			<version>${qwanda-utils.version}</version>
-		</dependency>
+
 
 
 		<dependency>
@@ -101,17 +97,6 @@
 			<version>${log4j-core-version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.spotify</groupId>
-			<artifactId>docker-client</artifactId>
-			<version>8.8.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.bitsofinfo</groupId>
-			<artifactId>hazelcast-docker-swarm-discovery-spi</artifactId>
-			<version>1.0-RC3</version>
-		</dependency>
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-api</artifactId>
