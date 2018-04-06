@@ -249,6 +249,7 @@ public class EBCHandlers {
 			System.out.println("----------------------------------------------------------------------\n");
 			
 		}
+		sendFacebookFriend(token);
 	}
 	public static void saveAnswer(String sourceCode, String targetCode, Boolean expired, Boolean refused, String attributeCode, String value, String token) {
 		// PREPARE JSON to send answer
@@ -321,8 +322,8 @@ public class EBCHandlers {
 				QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
 						gson1.toJson(answer), token);
 				i++;
-				sendFacebookFriend(token);
-			}                 
+/* 				sendFacebookFriend(token);
+ */			}                 
             
         }catch (Exception e) {
             e.printStackTrace();
