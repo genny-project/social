@@ -15,7 +15,8 @@ public class Routers {
 
     router.route().handler(RouterHandlers.cors());
     router.route(HttpMethod.GET, "/version").handler(VersionHandler::apiGetVersionHandler);
-
+    router.route(HttpMethod.POST, "/facebook").handler(FacebookWebhookHandler::apiPostFacebookWebhookHandler);
+    router.route(HttpMethod.GET, "/facebook").handler(FacebookWebhookHandler::apiGetFacebookWebhookHandler);
     
     vertx.createHttpServer().requestHandler(router::accept).listen(serverPort);
   }
