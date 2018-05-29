@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import io.vertx.rxjava.ext.web.RoutingContext;
+import life.genny.channel.Producer;
 import life.genny.util.PropertiesJsonDeserializer;
 
 public class FacebookWebhookHandler {
@@ -25,6 +26,10 @@ public class FacebookWebhookHandler {
 		    	  JsonObject webhookPayload = body.toJsonObject();
 		    	  System.out.println("Facebook Webhook!");
 		    	  System.out.println(webhookPayload);
+		    	  
+		    	  
+		    	  
+		    	  
 		          routingContext.response().putHeader("Content-Type", "application/json");
 		          routingContext.response().setStatusCode(200).end();
 
@@ -52,4 +57,6 @@ public class FacebookWebhookHandler {
 
 		    });
 		  }
+	  
+	
 }
