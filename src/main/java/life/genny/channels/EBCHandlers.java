@@ -38,9 +38,9 @@ import io.vertx.rxjava.core.eventbus.EventBus;
 import life.genny.channel.Consumer;
 import life.genny.channel.Producer;
 import life.genny.qwanda.Answer;
-import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakUtils;
 import life.genny.qwandautils.QwandaUtils;
 
@@ -124,7 +124,7 @@ public class EBCHandlers {
 
 		// Get Authorization URL
 		final String authorizationUrl = service.getAuthorizationUrl();
-		System.out.println("Recieved Authorization URl   ::   "+authorizationUrl);
+		System.out.println("Received Authorization URl   ::   "+authorizationUrl);
 		
 		// Get Access Token
 		final OAuth2AccessToken accessToken = service.getAccessToken(msg.getString("value"));
@@ -304,23 +304,19 @@ public class EBCHandlers {
 		BaseEntity be = new BaseEntity(link.getTargetCode(), name);
 		String qwandaServiceUrl = System.getenv("REACT_APP_QWANDA_API_URL");
 		
-		Gson gson1 = new Gson();
-		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		gson1 = gsonBuilder.create();
         
-        String jsonBE = gson1.toJson(be);
+        String jsonBE = JsonUtils.toJson(be);
         try {
         		// save BE
             QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/baseentitys", jsonBE, token);
             // link PER_USER1 to friends
-            QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/entityentitys", gson1.toJson(link),token);
+            QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/entityentitys", JsonUtils.toJson(link),token);
             // save attributes
             int i=1;
 			for (Answer answer : answerList) {
 				System.out.println("Answer      " + i + "::   " + answer.toString());
 				QwandaUtils.apiPostEntity(qwandaServiceUrl + "/qwanda/answers",
-						gson1.toJson(answer), token);
+						JsonUtils.toJson(answer), token);
 				i++;
 /* 				sendFacebookFriend(token);
  */			}                 
@@ -364,10 +360,7 @@ public class EBCHandlers {
         }
         
         
-        Gson gson1 = new Gson();
-        //CompleteSet = gson1.fromJson(ansStr, List.class);
-        //System.out.println("retain set::"+CompleteSet.toString());
-        
+         
         for(Answer answer : completeList) {
             
             switch(answer.getAttributeCode()) {
