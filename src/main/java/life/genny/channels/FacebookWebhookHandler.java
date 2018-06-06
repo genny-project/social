@@ -29,17 +29,15 @@ import life.genny.utils.BaseEntityUtils;
 import life.genny.utils.VertxUtils;
 
 public class FacebookWebhookHandler {
-	
+
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 	public static final String qwandaServiceUrl = System.getenv("REACT_APP_QWANDA_API_URL");
 
-	
 	private static String FB_VERIFY_TOKEN = System.getenv("FB_VERIFY_TOKEN") != null
 			? (System.getenv("FB_VERIFY_TOKEN"))
 			: "MEMBERHUB";
-
 
 	public static void apiPostFacebookWebhookHandler(final RoutingContext routingContext) {
 		routingContext.request().bodyHandler(body -> {
@@ -62,27 +60,50 @@ public class FacebookWebhookHandler {
 
 			if (webhookPayload.containsKey("object")) {
 				String objType = webhookPayload.getString("object");
-				
-				
 
 				if ("user".equalsIgnoreCase(objType)) {
 					JsonArray entrys = webhookPayload.getJsonArray("entry");
 					for (int entryId = 0; entryId < entrys.size(); entryId++) {
 						JsonObject entry = entrys.getJsonObject(entryId);
-						String fbid = entry.getString("uid");
 						String realm = System.getenv("PROJECT_REALM");
+						log.info("service realm:" + realm);
 						String token = BaseEntityUtils.generateServiceToken(realm);
-						String jsonBe = getBaseEntityJsonByAttributeAndValue("FBK_ID",fbid,token);
-						BaseEntity user = JsonUtils.fromJson(jsonBe, BaseEntity.class);
-						
-						JsonArray changes = entry.getJsonArray("changes");
-						for (int changeId = 0; changeId < changes.size(); changeId++) {
-							JsonObject change = changes.getJsonObject(changeId);
-							String field = change.getString("field");
-							String value = change.getString("value");
+						log.info("service token:" + token);
 
-							sendFacebookAnswer(user,field, value);
+						String fbid = entry.getString("uid");
+						log.info("fbid:" + fbid);
+	
+						BaseEntity user  = null;
+						if (!fbid.equals("0")) {
+							String jsonBe = getBaseEntityJsonByAttributeAndValue("FBK_ID", fbid, token);
+							user = JsonUtils.fromJson(jsonBe, BaseEntity.class);
 						}
+							JsonArray changes = entry.getJsonArray("changes");
+							for (int changeId = 0; changeId < changes.size(); changeId++) {
+								JsonObject change = changes.getJsonObject(changeId);
+								String field = change.getString("field");
+								String value = null;
+								
+								try {
+									value = change.getString("value");
+								} catch (Exception e) {
+									try {
+										JsonArray valueArray = change.getJsonArray("value");
+										value = valueArray.toString();
+									} catch (Exception e1) {
+										JsonObject valueJson = change.getJsonObject("value");
+										value = valueJson.toString();
+									}
+								}
+
+								if (!fbid.equals("0")) {
+									log.info("Test facebook data sent!");
+									sendFacebookAnswer(user, field, value);
+								} else {
+									log.info("field:"+field+",value:"+value);
+								}
+							}
+	
 					}
 				}
 
@@ -96,13 +117,13 @@ public class FacebookWebhookHandler {
 
 	public static void sendFacebookAnswer(BaseEntity user, String facebookField, String value) {
 		String targetCode = user.getCode();
-		String attributeCode = "FBK_"+facebookField.toUpperCase();
+		String attributeCode = "FBK_" + facebookField.toUpperCase();
 		Answer answer = new Answer("SOC_FB_BASIC", targetCode, attributeCode, value);
 		QDataAnswerMessage msg = new QDataAnswerMessage(answer);
 		String payload = JsonUtils.toJson(msg);
 		VertxUtils.publish(user, "data", payload);
 	}
-	
+
 	/**
 	 *
 	 * @param qwandaServiceUrl
@@ -110,13 +131,14 @@ public class FacebookWebhookHandler {
 	 * @param token
 	 * @return baseEntity user for the decodedToken passed
 	 */
-	public static String getBaseEntityJsonByAttributeAndValue(
-			 final String attributeCode, final String value, final String token) {
+	public static String getBaseEntityJsonByAttributeAndValue(final String attributeCode, final String value,
+			final String token) {
 
 		try {
 			String beJson = null;
 			beJson = QwandaUtils.apiGet(
-					qwandaServiceUrl + "/qwanda/baseentitys/test2?pageSize="+1000+"&" + attributeCode + "=" + value, token);
+					qwandaServiceUrl + "/qwanda/baseentitys/test2?pageSize=" + 1000 + "&" + attributeCode + "=" + value,
+					token);
 			return beJson;
 
 		} catch (IOException e) {
@@ -148,7 +170,4 @@ public class FacebookWebhookHandler {
 		});
 	}
 
-
-
-	
 }

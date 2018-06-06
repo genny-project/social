@@ -69,7 +69,7 @@ public class EBCHandlers {
 	}).create();
 	
 	
-	public static void registerHandlers(final EventBus eventBus){
+	public static void registerHandlers(){
 		Consumer.getFromSocial().subscribe(arg -> {		
 			Vertx.vertx().executeBlocking(arg1 -> {			
 				System.out.println("Received Facebook Code! - data");
