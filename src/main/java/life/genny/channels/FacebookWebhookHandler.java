@@ -26,6 +26,7 @@ import life.genny.qwandautils.SecurityUtils;
 
 import life.genny.util.PropertiesJsonDeserializer;
 import life.genny.utils.BaseEntityUtils;
+import life.genny.utils.BaseEntityUtils2;
 import life.genny.utils.VertxUtils;
 
 public class FacebookWebhookHandler {
@@ -67,7 +68,7 @@ public class FacebookWebhookHandler {
 						JsonObject entry = entrys.getJsonObject(entryId);
 						String realm = System.getenv("PROJECT_REALM");
 						log.info("service realm:" + realm);
-						String token = BaseEntityUtils.generateServiceToken(realm);
+						String token = BaseEntityUtils2.generateServiceToken(realm);
 						log.info("service token:" + token);
 
 						String fbid = entry.getString("uid");
