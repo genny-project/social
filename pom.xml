@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>social</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>2.0.0</version>
 	<name>social</name>
 	<properties>
 		<log4j-core-version>2.5</log4j-core-version>
-
+                <genny-verticle-rules.version>${version}</genny-verticle-rules.version>
 	</properties>
 	
 		<repositories>
@@ -26,15 +26,10 @@
 	</repositories>
 	
 	<dependencies>
-			<dependency>
-			<groupId>life.genny</groupId>
-			<artifactId>qwanda</artifactId>
-			<version>1.0.59</version>
-		</dependency>
 		<dependency>
 			<groupId>life.genny</groupId>
-			<artifactId>qwanda-utils</artifactId>
-			<version>1.0.59</version>
+			<artifactId>genny-verticle-rules</artifactId>
+			<version>${genny-verticle-rules.version}</version>
 		</dependency>
 	
 		<dependency>
@@ -84,9 +79,6 @@
 			<artifactId>vertx-auth-oauth2</artifactId>
 			<version>3.4.2</version>
 		</dependency>
-		<!--<dependency> <groupId>com.outcome-hub</groupId> <artifactId>qwanda</artifactId> 
-			<version>0.4.9.5</version> </dependency> -->
-		<!-- https://mvnrepository.com/artifact/com.spotify/docker-client -->
 		<dependency>
 			<groupId>com.spotify</groupId>
 			<artifactId>docker-client</artifactId>
