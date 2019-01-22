@@ -1,7 +1,7 @@
 FROM openjdk:8u131-jre-alpine
 RUN apk update && apk add jq && apk add curl && apk add bash
 
-ADD target/social-0.0.1-SNAPSHOT-fat.jar /service.jar
+ADD target/social-fat.jar /service.jar
 #ADD cluster.xml /cluster.xml
 
 RUN mkdir /realm
